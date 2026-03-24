@@ -28,7 +28,14 @@ class AIEngine {
       }
     };
     
-    permute(targets, [], 0, startPoint);
+    // Protect against O(N!) factorial explosion by picking only top 4 closest
+    const limitedTargets = targets
+      .map(t => ({ target: t, d: calculateDistance(startPoint, t) }))
+      .sort((a,b) => a.d - b.d)
+      .slice(0, 4)
+      .map(t => t.target);
+
+    permute(limitedTargets, [], 0, startPoint);
     return bestPath;
   }
 
