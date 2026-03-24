@@ -18,13 +18,32 @@ const INITIAL_STATE = {
 function App() {
   const [gameState, setGameState] = useState(INITIAL_STATE);
   const [isBattling, setIsBattling] = useState(false);
-  const [logs, setLogs] = useState(["System initialized. Awaiting battle command..."]);
+  const [logs, setLogs] = useState(["System initialized. Click any cell to place/remove player units. Awaiting battle command..."]);
   const [metrics, setMetrics] = useState(null);
 
   const addLog = (msg) => {
     setLogs(prev => {
         const next = [msg, ...prev];
         return next.slice(0, 15);
+    });
+  };
+
+  const handleCellClick = (x, y) => {
+    if (isBattling) return;
+    setGameState(prev => {
+      const unitIdx = prev.units.findIndex(u => u.x === x && u.y === y);
+      let newUnits = [...prev.units];
+      if (unitIdx !== -1) {
+        if (newUnits[unitIdx].team === 'player') {
+          newUnits.splice(unitIdx, 1);
+        }
+      } else {
+        newUnits.push({
+          id: 'p' + Date.now(),
+          team: 'player', x, y, hp: 100, maxHp: 100, attack: 25, range: 1, type: 'knight'
+        });
+      }
+      return { ...prev, units: newUnits };
     });
   };
 
@@ -101,7 +120,7 @@ function App() {
   const resetBattle = () => {
     setGameState(INITIAL_STATE);
     setIsBattling(false);
-    setLogs(["System reset. Simulation ready."]);
+    setLogs(["System reset. Click any cell to place/remove player units. Simulation ready."]);
     setMetrics(null);
   };
 
@@ -154,7 +173,7 @@ function App() {
                   const unit = gameState.units.find(u => u.x === x && u.y === y);
                   
                   return (
-                      <div key={idx} className="cell">
+                      <div key={idx} className="cell" onClick={() => handleCellClick(x, y)} style={{ cursor: isBattling ? 'default' : 'pointer' }}>
                           {unit && (
                               <motion.div 
                                 layoutId={unit.id}
